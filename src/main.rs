@@ -5,6 +5,7 @@ mod game_core;
 
 use bevy::prelude::*;
 use bevy::window::{CompositeAlphaMode, CursorGrabMode, PresentMode, WindowResizeConstraints};
+use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
 use game_core::player;
 use game_core::attack;
@@ -41,7 +42,14 @@ fn main() {
         add_primary_window: true,
         exit_on_all_closed: true,
         close_when_requested: true,
-    }));
+    }))
+    .add_plugin(WorldInspectorPlugin);
 
     app.run();
+}
+
+fn setup_system(mut commands: Commands, asset_server: Res<AssetServer>) {
+    // Spawn the camera
+    commands.spawn(Camera2dBundle::default());
+
 }
