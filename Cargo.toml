@@ -8,6 +8,8 @@ edition = "2021"
 [dependencies]
 rand = "0.8.5"
 bevy = "0.9.1"
+bevy_ecs_ldtk = "0.5.0"
+bevy_rapier2d = "0.20.0"
 bevy-inspector-egui = "0.17.0"
 
 
