@@ -7,6 +7,7 @@ use bevy::prelude::*;
 use bevy::sprite::Anchor;
 use bevy::window::{CompositeAlphaMode, CursorGrabMode, PresentMode, WindowResizeConstraints};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
+use bevy_ecs_ldtk::prelude::*;
 
 use game_core::player;
 use game_core::attack;
@@ -55,8 +56,9 @@ fn main() {
     }))
 
         // .add_plugin(WorldInspectorPlugin);  // -> Debug information panel
-
+        .add_plugin(LdtkPlugin)
         .add_startup_system(setup_system)
+        .insert_resource(LevelSelection::Index(0))
         .add_system(sprite_movement);
 
     app.run();
@@ -75,12 +77,17 @@ fn setup_system(
     commands.spawn((
         SpriteBundle {
             texture: asset_server.load("game/characters/player/player.png"),
-            transform: Transform::from_xyz(100., 0., 0.),
+            transform: Transform::from_xyz(100., 0., 1.),
             ..default()
         },
         Direction::Up,
     ));
 
+    // Spawning the tileset "World"
+    commands.spawn(LdtkWorldBundle {
+        ldtk_handle: asset_server.load("ldtk/sandbox.ldtk"),
+        ..Default::default()
+    });
 
     let startup_sound = asset_server.load("audio/sound_effects/pickup-coin.ogg");
     audio.play(startup_sound);
