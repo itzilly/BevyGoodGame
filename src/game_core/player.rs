@@ -11,7 +11,7 @@ const PLAYER_INFO: PlayerStatsBundle = PlayerStatsBundle {
     player_movement_info: PlayerMovementInfo {
         acceleration: 800.0,
         deceleration: 700.0,
-        max_speed: 300.0,
+        max_speed: 200.0,
     },
 };
 
@@ -90,6 +90,9 @@ pub struct PlayerBundle {
 
     #[from_entity_instance]
     entity_instance: EntityInstance,
+
+    #[worldly]
+    worldly: Worldly,
 }
 
 pub fn player_movement_system(
