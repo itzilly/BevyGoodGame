@@ -6,15 +6,14 @@ pub mod game_core;
 use bevy::prelude::*;
 use bevy::sprite::Anchor;
 use bevy::window::{CompositeAlphaMode, CursorGrabMode, PresentMode, WindowResizeConstraints};
-use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_ecs_ldtk::prelude::*;
+use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_rapier2d::prelude::*;
 
-use game_core::player;
-use game_core::attack;
-use game_core::world;
 use crate::game_core::player::Player;
-
+use game_core::attack;
+use game_core::player;
+use game_core::world;
 
 fn main() {
     let mut app = App::new();
@@ -43,18 +42,17 @@ fn main() {
         exit_on_all_closed: true,
         close_when_requested: true,
     }))
-        .add_plugin(RapierDebugRenderPlugin::default())
-        .add_plugin(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.0))
-        .add_plugin(LdtkPlugin)
-        .insert_resource(LevelSelection::Index(0))
-        .register_ldtk_int_cell::<world::FenceBundle>(1)
-
-        // .add_plugin(WorldInspectorPlugin);  // -> Debug information panel
-
-        .add_startup_system(setup_system)
-        .insert_resource(LevelSelection::Index(0))
-        .add_system(player::player_movement_system)
-        .add_system(world::spawn_fence_collision);
+    .add_plugin(RapierDebugRenderPlugin::default())
+    .add_plugin(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.0))
+    .add_plugin(LdtkPlugin)
+    .insert_resource(LevelSelection::Index(0))
+    .register_ldtk_int_cell::<world::FenceBundle>(1)
+    .register_ldtk_entity::<player::PlayerBundle>("Player")
+    // .add_plugin(WorldInspectorPlugin);  // -> Debug information panel
+    .add_startup_system(setup_system)
+    .insert_resource(LevelSelection::Index(0))
+    .add_system(player::player_movement_system)
+    .add_system(world::spawn_fence_collision);
 
     app.run();
 }
@@ -64,7 +62,7 @@ fn setup_system(
     asset_server: Res<AssetServer>,
     meshes: Res<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    audio: Res<Audio>
+    audio: Res<Audio>,
 ) {
     // Spawn the camera
     commands.spawn(Camera2dBundle {
@@ -75,26 +73,26 @@ fn setup_system(
         ..Default::default()
     });
 
-    commands.spawn((
-        SpriteBundle {
-            texture: asset_server.load("game/characters/player/player.png"),
-            transform: Transform::from_xyz(100., 0., 5.),
-            ..default()
-        },
-        Player {
-            health: 10,
-            attack_power: 10,
-            armor: 10,
-            acceleration: 800.0,
-            deceleration: 700.0,
-            max_speed: 300.0,
-        },
-        RigidBody::Dynamic,
-        Velocity::zero(),
-        LockedAxes::ROTATION_LOCKED,
-        GravityScale(0.0),
-        Collider::cuboid(64.0 / 2.0, 64.0 / 2.0),
-    ));
+    // commands.spawn((
+    //     SpriteBundle {
+    //         texture: asset_server.load("game/characters/player/player.png"),
+    //         transform: Transform::from_xyz(100., 0., 5.),
+    //         ..default()
+    //     },
+    //     Player {
+    //         health: 10,
+    //         attack_power: 10,
+    //         armor: 10,
+    //         acceleration: 800.0,
+    //         deceleration: 700.0,
+    //         max_speed: 300.0,
+    //     },
+    //     RigidBody::Dynamic,
+    //     Velocity::zero(),
+    //     LockedAxes::ROTATION_LOCKED,
+    //     GravityScale(0.0),
+    //     Collider::cuboid(64.0 / 2.0, 64.0 / 2.0),
+    // ));
 
     // Spawning the tileset "World"
     commands.spawn(LdtkWorldBundle {
@@ -104,8 +102,4 @@ fn setup_system(
 
     let startup_sound = asset_server.load("audio/sound_effects/pickup-coin.ogg");
     audio.play(startup_sound);
-
 }
-
-
-
