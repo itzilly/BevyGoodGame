@@ -11,10 +11,11 @@ use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_rapier2d::prelude::*;
 use std::thread::spawn;
 
-use crate::game_core::player::Player;
+use crate::game_core::entities::entity_components::PlayerBundle;
 use game_core::attack;
 use game_core::camera;
-use game_core::player;
+use game_core::entities::entity_components;
+use game_core::entities::player;
 use game_core::world;
 
 fn main() {
@@ -53,7 +54,7 @@ fn main() {
     .add_plugin(LdtkPlugin)
     .insert_resource(LevelSelection::Index(0))
     .register_ldtk_int_cell::<world::FenceBundle>(1)
-    .register_ldtk_entity::<player::PlayerBundle>("Player")
+    .register_ldtk_entity::<PlayerBundle>("Player")
     // .add_plugin(WorldInspectorPlugin);  // -> Debug information panel
     .add_startup_system(setup_system)
     .insert_resource(LevelSelection::Index(0))
@@ -82,7 +83,7 @@ fn setup_system(
         ..Default::default()
     });
 
-    // Spawning the tileset "World"
+    // Spawning the tileset, the "World"
     commands.spawn(LdtkWorldBundle {
         ldtk_handle: asset_server.load("ldtk/sandbox.ldtk"),
         ..Default::default()

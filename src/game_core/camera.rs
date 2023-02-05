@@ -1,4 +1,4 @@
-use crate::game_core::player::Player;
+use crate::game_core::entities::entity_components::Player;
 use bevy::prelude::*;
 
 // pub fn setup_camera() {
