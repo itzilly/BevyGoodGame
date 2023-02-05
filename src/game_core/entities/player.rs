@@ -1,5 +1,5 @@
 use crate::game_core::entities::entity_components::{
-    AttackTimer, IsAttacking, Player, PlayerMovementInfo,
+    AttackTimer, Enemy, IsAttacking, Player, PlayerMovementInfo,
 };
 use bevy::prelude::*;
 use bevy::sprite::MaterialMesh2dBundle;
@@ -120,8 +120,9 @@ pub fn attack_handler_system(
                 let collider = commands
                     .spawn((
                         MaterialMesh2dBundle {
-                            mesh: meshes.add(Mesh::from(shape::Quad::default())).into(),
-                            transform: Transform::default().with_scale(Vec3::splat(40.)),
+                            mesh: meshes
+                                .add(Mesh::from(shape::Quad::new(Vec2::new(40.0, 40.0))))
+                                .into(),
                             material: materials.add(ColorMaterial::from(Color::BLUE)),
                             ..default()
                         },
@@ -157,12 +158,20 @@ pub fn attack_handler_system(
     }
 }
 
-pub fn Attack_Collider_Handler(mut collision_events: EventReader<CollisionEvent>) {
+pub fn Attack_Collider_Handler(
+    mut collision_events: EventReader<CollisionEvent>,
+    enemies: Query<&Enemy>,
+) {
     for collision_event in collision_events.iter() {
         match collision_event {
             CollisionEvent::Started(entity1, entity2, flag) => {
                 if flag == &CollisionEventFlags::SENSOR {
-                    println!("MUST IMPLEMENT ENEMIES")
+                    if let Ok(enemy) = enemies.get(*entity1) {
+                        println!("Just hit {}!", enemy.name);
+                    }
+                    if let Ok(enemy) = enemies.get(*entity2) {
+                        println!("Just hit {}!", enemy.name);
+                    }
                 }
             }
             CollisionEvent::Stopped(_, _, _) => {}

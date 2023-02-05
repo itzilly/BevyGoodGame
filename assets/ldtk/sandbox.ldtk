@@ -10,7 +10,7 @@
 	},
 	"jsonVersion": "1.1.0",
 	"appBuildId": 458005,
-	"nextUid": 35,
+	"nextUid": 37,
 	"identifierStyle": "Capitalize",
 	"worldLayout": "Free",
 	"worldGridWidth": 256,
@@ -588,6 +588,64 @@
 			"pivotX": 0.5,
 			"pivotY": 0.5,
 			"fieldDefs": []
+		},
+		{
+			"identifier": "Enemy",
+			"uid": 35,
+			"tags": [],
+			"width": 16,
+			"height": 16,
+			"resizableX": false,
+			"resizableY": false,
+			"keepAspectRatio": false,
+			"tileOpacity": 1,
+			"fillOpacity": 1,
+			"lineOpacity": 1,
+			"hollow": false,
+			"color": "#94D9B3",
+			"renderMode": "Rectangle",
+			"showName": true,
+			"tilesetId": null,
+			"tileId": null,
+			"tileRenderMode": "FitInside",
+			"tileRect": null,
+			"nineSliceBorders": [],
+			"maxCount": 0,
+			"limitScope": "PerLevel",
+			"limitBehavior": "MoveLastOne",
+			"pivotX": 0,
+			"pivotY": 0,
+			"fieldDefs": [
+				{
+					"identifier": "Name",
+					"__type": "String",
+					"uid": 36,
+					"type": "F_String",
+					"isArray": false,
+					"canBeNull": false,
+					"arrayMinLength": null,
+					"arrayMaxLength": null,
+					"editorDisplayMode": "Hidden",
+					"editorDisplayPos": "Above",
+					"editorAlwaysShow": false,
+					"editorCutLongValues": true,
+					"editorTextSuffix": null,
+					"editorTextPrefix": null,
+					"useForSmartColor": false,
+					"min": null,
+					"max": null,
+					"regex": null,
+					"acceptFileTypes": null,
+					"defaultOverride": null,
+					"textLanguageMode": null,
+					"symmetricalRef": false,
+					"autoChainRef": true,
+					"allowOutOfLevelRef": true,
+					"allowedRefs": "OnlySame",
+					"allowedRefTags": [],
+					"tilesetUid": null
+				}
+			]
 		}
 	], "tilesets": [
 		{
@@ -776,6 +834,23 @@
 							"defUid": 30,
 							"px": [88,104],
 							"fieldInstances": []
+						},
+						{
+							"__identifier": "Enemy",
+							"__grid": [14,16],
+							"__pivot": [0,0],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#94D9B3",
+							"iid": "dc23c490-9f30-11ed-b286-7948c5f67932",
+							"width": 16,
+							"height": 16,
+							"defUid": 35,
+							"px": [224,256],
+							"fieldInstances": [{ "__identifier": "Name", "__value": "Terry Pratchet", "__type": "String", "__tile": null, "defUid": 36, "realEditorValues": [{
+								"id": "V_String",
+								"params": ["Terry Pratchet"]
+							}] }]
 						}
 					]
 				},

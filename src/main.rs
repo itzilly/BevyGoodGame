@@ -11,7 +11,8 @@ use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_rapier2d::prelude::*;
 use std::thread::spawn;
 
-use crate::game_core::entities::entity_components::PlayerBundle;
+use crate::game_core::entities::enemy;
+use crate::game_core::entities::entity_components::{EnemyBundle, PlayerBundle};
 use game_core::attack;
 use game_core::camera;
 use game_core::entities::entity_components;
@@ -55,6 +56,7 @@ fn main() {
     .insert_resource(LevelSelection::Index(0))
     .register_ldtk_int_cell::<world::FenceBundle>(1)
     .register_ldtk_entity::<PlayerBundle>("Player")
+    .register_ldtk_entity::<EnemyBundle>("Enemy")
     // .add_plugin(WorldInspectorPlugin);  // -> Debug information panel
     .add_startup_system(setup_system)
     .insert_resource(LevelSelection::Index(0))
