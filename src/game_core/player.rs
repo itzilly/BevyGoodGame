@@ -1,19 +1,11 @@
-use super::attack::Attack;
 use bevy::prelude::*;
+use bevy::sprite::MaterialMesh2dBundle;
 use bevy_ecs_ldtk::prelude::*;
 use bevy_inspector_egui::egui::Event::Key;
+use bevy_rapier2d::parry::transformation::utils::transform;
 use bevy_rapier2d::prelude::*;
-
-const PLAYER_INFO: PlayerStatsBundle = PlayerStatsBundle {
-    health: Health(10.0),
-    attack_power: AttackPower(10.0),
-    damage_resistance: DamageResistance(10.0),
-    player_movement_info: PlayerMovementInfo {
-        acceleration: 800.0,
-        deceleration: 700.0,
-        max_speed: 200.0,
-    },
-};
+use bevy_rapier2d::rapier::prelude::CollisionEventFlags;
+use std::time::Duration;
 
 #[derive(Component, Clone, Default)]
 pub struct Player;
@@ -25,7 +17,13 @@ pub struct Health(f32);
 pub struct AttackPower(f32);
 
 #[derive(Component, Clone, Default)]
+pub struct AttackTimer(Timer);
+
+#[derive(Component, Clone, Default)]
 pub struct DamageResistance(f32);
+
+#[derive(Component, Clone, Default)]
+pub struct IsAttacking(bool);
 
 #[derive(Component, Clone, Default)]
 pub struct PlayerMovementInfo {
@@ -40,11 +38,25 @@ pub struct PlayerStatsBundle {
     pub attack_power: AttackPower,
     pub damage_resistance: DamageResistance,
     pub player_movement_info: PlayerMovementInfo,
+    pub attack_duration: AttackTimer,
 }
 
 impl From<EntityInstance> for PlayerStatsBundle {
     fn from(entity_instance: EntityInstance) -> Self {
-        PLAYER_INFO
+        PlayerStatsBundle {
+            health: Health(10.0),
+            attack_power: AttackPower(10.0),
+            damage_resistance: DamageResistance(10.0),
+            player_movement_info: PlayerMovementInfo {
+                acceleration: 800.0,
+                deceleration: 700.0,
+                max_speed: 200.0,
+            },
+            attack_duration: AttackTimer(Timer::new(
+                Duration::from_millis((0.5 * 1000.0) as u64),
+                TimerMode::Repeating,
+            )),
+        }
     }
 }
 
@@ -59,7 +71,6 @@ pub struct ColliderBundle {
 
 impl From<EntityInstance> for ColliderBundle {
     fn from(entity_instance: EntityInstance) -> Self {
-        println!("{}", entity_instance.identifier);
         match entity_instance.identifier.as_ref() {
             "Player" => ColliderBundle {
                 collider: Collider::cuboid(15.0 / 2.0, 22.0 / 2.0),
@@ -90,6 +101,8 @@ pub struct PlayerBundle {
 
     #[from_entity_instance]
     entity_instance: EntityInstance,
+
+    is_attacking: IsAttacking,
 
     #[worldly]
     worldly: Worldly,
@@ -171,6 +184,86 @@ pub fn player_movement_system(
             // Stop the player
             player_velocity.linvel = Vec2::ZERO;
             return;
+        }
+    }
+}
+
+pub fn sense_attack_system(mut attacking: Query<&mut IsAttacking, With<Player>>) {
+    if let Ok(mut attacking) = attacking.get_single_mut() {}
+}
+
+pub fn attack_handler_system(
+    mut commands: Commands,
+    mut player: Query<
+        (
+            &mut IsAttacking,
+            &Transform,
+            &mut AttackTimer,
+            Option<&Children>,
+            Entity,
+        ),
+        With<Player>,
+    >,
+    time: Res<Time>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+    mouse: Res<Input<MouseButton>>,
+) {
+    if let Ok((mut attacking, transform, mut attack_timer, children, entity)) =
+        player.get_single_mut()
+    {
+        if mouse.just_pressed(MouseButton::Left) && !attacking.0 {
+            attacking.0 = true;
+            if attacking.0 {
+                let collider = commands
+                    .spawn((
+                        MaterialMesh2dBundle {
+                            mesh: meshes.add(Mesh::from(shape::Quad::default())).into(),
+                            transform: Transform::default().with_scale(Vec3::splat(40.)),
+                            material: materials.add(ColorMaterial::from(Color::BLUE)),
+                            ..default()
+                        },
+                        Collider::cuboid(20.0, 20.0),
+                        ActiveEvents::COLLISION_EVENTS,
+                        Sensor,
+                    ))
+                    .id();
+
+                commands.entity(entity).add_child(collider);
+            }
+        }
+
+        if attacking.0 {
+            attack_timer.0.tick(time.delta());
+        }
+
+        if attack_timer.0.finished() {
+            let mut count = 0;
+            for i in children.unwrap().iter() {
+                count += 1;
+            }
+            if let Some(&child) = children
+                .expect("NO CHILD WHEN KILLING COLLIDER CHILD")
+                .get(0)
+            {
+                attack_timer.0.reset();
+                commands.entity(child).despawn_recursive();
+            }
+
+            attacking.0 = false;
+        }
+    }
+}
+
+pub fn Attack_Collider_Handler(mut collision_events: EventReader<CollisionEvent>) {
+    for collision_event in collision_events.iter() {
+        match collision_event {
+            CollisionEvent::Started(entity1, entity2, flag) => {
+                if flag == &CollisionEventFlags::SENSOR {
+                    println!("MUST IMPLEMENT ENEMIES")
+                }
+            }
+            CollisionEvent::Stopped(_, _, _) => {}
         }
     }
 }

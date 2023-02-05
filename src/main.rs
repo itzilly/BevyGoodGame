@@ -4,11 +4,12 @@
 pub mod game_core;
 
 use bevy::prelude::*;
-use bevy::sprite::Anchor;
+use bevy::sprite::{Anchor, MaterialMesh2dBundle};
 use bevy::window::{CompositeAlphaMode, CursorGrabMode, PresentMode, WindowResizeConstraints};
 use bevy_ecs_ldtk::prelude::*;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_rapier2d::prelude::*;
+use std::thread::spawn;
 
 use crate::game_core::player::Player;
 use game_core::attack;
@@ -58,6 +59,8 @@ fn main() {
     .insert_resource(LevelSelection::Index(0))
     .add_system(player::player_movement_system)
     .add_system(camera::follow_player_system)
+    .add_system(player::attack_handler_system)
+    .add_system_to_stage(CoreStage::PostUpdate, player::Attack_Collider_Handler)
     .add_system(world::spawn_fence_collision);
 
     app.run();
