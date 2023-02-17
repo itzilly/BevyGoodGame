@@ -1,6 +1,8 @@
 #![allow(unused)]
 #![allow(non_snake_case)]
 
+extern crate core;
+
 pub mod game_core;
 
 use bevy::prelude::*;
@@ -63,6 +65,7 @@ fn main() {
     .add_system(player::player_movement_system)
     .add_system(camera::follow_player_system)
     .add_system(player::attack_handler_system)
+    .add_system(enemy::on_enemy_spawned)
     .add_system_to_stage(CoreStage::PostUpdate, player::Attack_Collider_Handler)
     .add_system(world::spawn_fence_collision);
 

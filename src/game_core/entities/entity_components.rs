@@ -1,6 +1,11 @@
+use crate::game_core::entities::player::{
+    ATTACK_DURATION_SECS, ATTACK_POWER, DAMAGE_RESISTANCE, HEALTH, PLAYER_MOVEMENT,
+};
 use bevy::prelude::*;
 use bevy_ecs_ldtk::prelude::*;
 use bevy_rapier2d::prelude::*;
+use std::cell::RefMut;
+use std::os::macos::raw::stat;
 use std::time::Duration;
 
 // COMMON COMPONENTS
@@ -73,16 +78,12 @@ pub struct PlayerStatsBundle {
 impl From<EntityInstance> for PlayerStatsBundle {
     fn from(entity_instance: EntityInstance) -> Self {
         PlayerStatsBundle {
-            health: Health(10.0),
-            attack_power: AttackPower(10.0),
-            damage_resistance: DamageResistance(10.0),
-            player_movement_info: PlayerMovementInfo {
-                acceleration: 800.0,
-                deceleration: 700.0,
-                max_speed: 200.0,
-            },
+            health: Health(HEALTH),
+            attack_power: AttackPower(ATTACK_POWER),
+            damage_resistance: DamageResistance(DAMAGE_RESISTANCE),
+            player_movement_info: PLAYER_MOVEMENT.clone(),
             attack_duration: AttackTimer(Timer::new(
-                Duration::from_millis((0.5 * 1000.0) as u64),
+                Duration::from_millis((ATTACK_DURATION_SECS * 1000.0) as u64),
                 TimerMode::Repeating,
             )),
         }
@@ -117,26 +118,67 @@ pub struct PlayerBundle {
 #[derive(Component, Clone, Default)]
 pub struct Enemy {
     pub name: String,
+    pub stats: EnemyStats,
+}
+
+impl Enemy {
+    // Return elements are (attacking back, died)
+    pub fn attack(&self, incoming_damage: f32, mut enemy_stats: &mut Mut<EnemyStats>)
+    /*-> (bool, bool)*/
+    {
+        enemy_stats.health -= incoming_damage;
+        let mut dead = false;
+        if enemy_stats.health <= 0.0 {
+            dead = true;
+            enemy_stats.health = self.stats.health;
+            println!("DEAD!!!");
+        }
+        println!("Health is now: {}", enemy_stats.health);
+    }
 }
 
 impl From<EntityInstance> for Enemy {
     fn from(entity_instance: EntityInstance) -> Self {
+        let mut enemy = Enemy::default();
         for field in entity_instance.field_instances {
-            match field.value {
-                FieldValue::String(name) => {
-                    // println!("ENENMSY NAME: {}", &name.unwrap());
-                    return Enemy {
-                        name: name.unwrap(),
-                    };
+            match field.identifier.as_ref() {
+                "Name" => {
+                    if let FieldValue::String(Some(name)) = field.value {
+                        enemy.name = name;
+                    }
+                }
+                "Health" => {
+                    if let FieldValue::Float(Some(health)) = field.value {
+                        enemy.stats.health = health;
+                    }
+                }
+                "Attack_Power" => {
+                    if let FieldValue::Float(Some(power)) = field.value {
+                        enemy.stats.attack_power = power;
+                    }
+                }
+                "Attack_Chance" => {
+                    if let FieldValue::Float(Some(chance)) = field.value {
+                        enemy.stats.attack_chance = chance;
+                    }
                 }
                 _ => {}
             }
         }
 
-        return Enemy {
-            name: "John Doe".to_string(),
-        };
+        return enemy;
     }
+}
+
+// Chance of attacking back, between 0 and 100
+#[derive(Component, Clone, Default)]
+pub struct AttackChance(f32);
+
+#[derive(Component, Clone, Default)]
+pub struct EnemyStats {
+    pub health: f32,
+    pub attack_power: f32,
+    pub attack_chance: f32,
 }
 
 #[derive(Clone, Default, Bundle, LdtkEntity)]
@@ -147,6 +189,8 @@ pub struct EnemyBundle {
 
     #[from_entity_instance]
     pub enemy: Enemy,
+
+    pub enemy_current_stats: EnemyStats,
 
     #[from_entity_instance]
     pub collider_bundle: ColliderBundle,

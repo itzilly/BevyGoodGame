@@ -1,5 +1,6 @@
 use crate::game_core::entities::entity_components::{
-    AttackTimer, Enemy, IsAttacking, Player, PlayerMovementInfo,
+    AttackPower, AttackTimer, DamageResistance, Enemy, EnemyStats, Health, IsAttacking, Player,
+    PlayerMovementInfo,
 };
 use bevy::prelude::*;
 use bevy::sprite::MaterialMesh2dBundle;
@@ -7,8 +8,19 @@ use bevy_ecs_ldtk::prelude::*;
 use bevy_inspector_egui::egui::Event::Key;
 use bevy_rapier2d::prelude::*;
 use bevy_rapier2d::rapier::geometry::CollisionEventFlags;
+use std::cell::RefMut;
 
 use super::entity_components;
+
+pub static HEALTH: f32 = 10.0;
+pub static ATTACK_POWER: f32 = 10.0;
+pub static DAMAGE_RESISTANCE: f32 = 10.0;
+pub static PLAYER_MOVEMENT: PlayerMovementInfo = PlayerMovementInfo {
+    acceleration: 800.0,
+    deceleration: 700.0,
+    max_speed: 200.0,
+};
+pub static ATTACK_DURATION_SECS: f32 = 0.1;
 
 pub fn player_movement_system(
     time: Res<Time>,
@@ -28,7 +40,7 @@ pub fn player_movement_system(
             KeyCode::Right,
             KeyCode::D,
         ]) {
-            // Acceleration is the rate at wich the speed increases
+            // Acceleration is the rate at which the speed increases
             let mut acceleration = Vec2::ZERO;
 
             // set the acceleration based on inputs
@@ -88,10 +100,6 @@ pub fn player_movement_system(
             return;
         }
     }
-}
-
-pub fn sense_attack_system(mut attacking: Query<&mut IsAttacking, With<Player>>) {
-    if let Ok(mut attacking) = attacking.get_single_mut() {}
 }
 
 pub fn attack_handler_system(
@@ -160,17 +168,15 @@ pub fn attack_handler_system(
 
 pub fn Attack_Collider_Handler(
     mut collision_events: EventReader<CollisionEvent>,
-    enemies: Query<&Enemy>,
+    mut enemy_data: Query<(&Enemy, &mut EnemyStats, Entity)>,
 ) {
     for collision_event in collision_events.iter() {
         match collision_event {
             CollisionEvent::Started(entity1, entity2, flag) => {
                 if flag == &CollisionEventFlags::SENSOR {
-                    if let Ok(enemy) = enemies.get(*entity1) {
-                        println!("Just hit {}!", enemy.name);
-                    }
-                    if let Ok(enemy) = enemies.get(*entity2) {
-                        println!("Just hit {}!", enemy.name);
+                    let this = enemy_data.get_mut(*entity1);
+                    if let Ok((enemy, mut stats, entity)) = enemy_data.get_mut(*entity1) {
+                        enemy.attack(ATTACK_POWER, &mut stats);
                     }
                 }
             }
